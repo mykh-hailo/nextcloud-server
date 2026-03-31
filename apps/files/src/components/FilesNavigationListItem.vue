@@ -8,6 +8,7 @@ import type { IView } from '@nextcloud/files'
 
 import { getCanonicalLocale, getLanguage } from '@nextcloud/l10n'
 import { computed, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router/composables'
 import NcAppNavigationItem from '@nextcloud/vue/components/NcAppNavigationItem'
 import NcIconSvgWrapper from '@nextcloud/vue/components/NcIconSvgWrapper'
 import { useVisibleViews } from '../composables/useViews.ts'
@@ -24,9 +25,22 @@ const props = withDefaults(defineProps<{
 const maxLevel = 6 // Limit nesting to not exceed max call stack size
 const viewConfigStore = useViewConfigStore()
 const viewConfig = computed(() => viewConfigStore.viewConfigs[props.view.id])
+const route = useRoute()
 const isExpanded = computed(() => viewConfig.value
 	? (viewConfig.value.expanded === true)
 	: (props.view.expanded === true))
+const isFolderTreeNode = computed(() => props.view.id.startsWith(`${folderTreeId}::`))
+const isDirectoryActive = computed(() => {
+	if (!isFolderTreeNode.value) {
+		return false
+	}
+
+	const currentView = String(route.params?.view ?? '')
+	const currentDir = normalizeDir(route.query?.dir)
+	const viewDir = normalizeDir(props.view.params?.dir)
+
+	return currentView === folderTreeId && currentDir === viewDir
+})
 
 const views = useVisibleViews()
 const childViews = computed(() => {
@@ -66,7 +80,13 @@ const hasChildViews = computed(() => childViews.value.length > 0)
 const navigationRoute = computed(() => {
 	if (props.view.params) {
 		const { dir } = props.view.params
-		return { name: 'filelist', params: { ...props.view.params }, query: { dir } }
+		const params = { ...props.view.params }
+		// Keep folder-tree selection bound to directory instead of selected file.
+		// This prevents extra highlighted entries when opening Details for a child folder.
+		if (isFolderTreeNode.value) {
+			delete params.fileid
+		}
+		return { name: 'filelist', params, query: { dir } }
 	}
 	return { name: 'filelist', params: { view: props.view.id } }
 })
@@ -121,6 +141,18 @@ async function loadChildViews() {
 		}
 	}
 }
+
+/**
+ * Normalize directory paths for route comparisons.
+ *
+ * @param dir - the route directory to normalize
+ */
+function normalizeDir(dir: unknown): string {
+	if (typeof dir !== 'string' || dir.length === 0) {
+		return '/'
+	}
+	return dir.replace(/^(.+)\/$/, '$1')
+}
 </script>
 
 <script lang="ts">
@@ -141,7 +173,8 @@ export default {
 		allow-collapse
 		:loading="isLoading"
 		:data-cy-files-navigation-item="view.id"
-		:exact="hasChildViews /* eslint-disable-line @nextcloud/vue/no-deprecated-props */"
+		:exact="isFolderTreeNode || hasChildViews /* eslint-disable-line @nextcloud/vue/no-deprecated-props */"
+		:active="isDirectoryActive"
 		:name="view.name"
 		:open="isExpanded"
 		:pinned="view.sticky"
