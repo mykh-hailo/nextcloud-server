@@ -49,36 +49,6 @@
 			<span class="row__subtitle">{{ user.id }}</span>
 		</td>
 
-		<td
-			data-cy-user-list-cell-password
-			class="row__cell"
-			:class="{ 'row__cell--obfuscated': hasObfuscated }">
-			<template v-if="editing && settings.canChangePassword && user.backendCapabilities.setPassword">
-				<NcTextField
-					v-model="editedPassword"
-					class="user-row-text-field"
-					data-cy-user-list-input-password
-					:data-loading="loading.password || undefined"
-					:trailing-button-label="t('settings', 'Submit')"
-					:class="{ 'icon-loading-small': loading.password }"
-					:show-trailing-button="true"
-					:disabled="loading.password || isLoadingField"
-					:minlength="minPasswordLength"
-					maxlength="469"
-					:label="t('settings', 'Set new password')"
-					trailing-button-icon="arrowEnd"
-					autocapitalize="off"
-					autocomplete="new-password"
-					required
-					spellcheck="false"
-					type="password"
-					@trailing-button-click="updatePassword" />
-			</template>
-			<span v-else-if="isObfuscated">
-				{{ t('settings', 'You do not have permissions to see the details of this account') }}
-			</span>
-		</td>
-
 		<td class="row__cell" data-cy-user-list-cell-email>
 			<template v-if="editing">
 				<NcTextField
@@ -105,7 +75,7 @@
 			</span>
 		</td>
 
-		<td class="row__cell row__cell--large row__cell--multiline" data-cy-user-list-cell-groups>
+		<td class="row__cell row__cell--groups row__cell--multiline" data-cy-user-list-cell-groups>
 			<template v-if="editing">
 				<label
 					class="hidden-visually"

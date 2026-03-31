@@ -50,7 +50,7 @@
 			</template>
 
 			<template #header>
-				<UserListHeader :has-obfuscated="hasObfuscated" />
+				<UserListHeader />
 			</template>
 
 			<template #footer>
