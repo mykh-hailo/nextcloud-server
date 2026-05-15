@@ -12,7 +12,7 @@
 			variant="primary"
 			@click="openDialogIfNeeded">
 			<template v-if="primaryAction.icon" #icon>
-				<div class="icon public-page-menu__primary-icon" :class="[primaryAction.icon]" />
+				<div class="icon icon-white public-page-menu__primary-icon" :class="[primaryAction.icon]" />
 			</template>
 			{{ primaryAction.label }}
 		</NcButton>
@@ -135,7 +135,9 @@ function openDialogIfNeeded() {
 	}
 
 	&__primary-icon {
-		filter: var(--primary-invert-if-bright);
+		// Use the white icon variant on primary buttons; dist/icons.css swaps
+		// --icon-*-white and --icon-*-dark per theme for correct light/dark contrast.
+		filter: none;
 	}
 }
 </style>
